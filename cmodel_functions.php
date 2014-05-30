@@ -152,13 +152,14 @@ function islandora_cmodel_supertypes($cmodel_id) {
  * @todo Write docs for `islandora_cmodel_create`
  */
 function islandora_cmodel_create($cmodel_id,
-                                 $owner,
                                  $label,
-                                 $parent_id=NULL){
+                                 $dscm_path = '',
+                                 $parent_id = NULL,
+                                 $owner = 'fedoraAdmin') {
 
   $tuque = new IslandoraTuque();
 
-  $module_path = drupal_get_path('module', 'iacm');
+
 
   // If a parent ID is given, but the Fedora Object doesn't exist, or
   // is not a CModel, return NULL.
@@ -175,13 +176,14 @@ function islandora_cmodel_create($cmodel_id,
     $cmodel->label = $label;
     $cmodel->models = 'fedora-system:ContentModel-3.0';
 
-    // DS-COMPOSITE-MODEL Datastream.
-    $dscm = $cmodel->constructDatastream('DS-COMPOSITE-MODEL', 'X');
-    $dscm->label = 'Datastreams';
-    $dscm->mimetype = 'text/xml';
-    $dscm->setContentFromFile("$module_path/xml/ds_composite_model.xml", FALSE);
-    $cmodel->ingestDatastream($dscm);
-
+    if ($dscm_path){
+      // DS-COMPOSITE-MODEL Datastream.
+      $dscm = $cmodel->constructDatastream('DS-COMPOSITE-MODEL', 'X');
+      $dscm->label = 'Datastreams';
+      $dscm->mimetype = 'text/xml';
+      $dscm->setContentFromFile($dscm_path, FALSE);
+      $cmodel->ingestDatastream($dscm);
+    }
     // Inherit from parent
     if ($parent_id)
       $cmodel->relationships->add(FEDORA_MODEL_URI, 'hasModel', $parent_id);
