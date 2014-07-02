@@ -1,7 +1,27 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: nolan
- * Date: 2014-07-02
- * Time: 2:47 PM
- */ 
+ * @file
+ * islandora_cmodel.install
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * @see islandora_cmodel_islandora_required_objects()
+ */
+function islandora_cmodel_install() {
+  module_load_include('inc', 'islandora', 'includes/solution_packs');
+  islandora_install_solution_pack('islandora_cmodel');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function islandora_cmodel_uninstall() {
+  module_load_include('inc', 'islandora', 'includes/solution_packs');
+  islandora_install_solution_pack('islandora_cmodel', 'uninstall');
+  $variables = array('islandora_cmodel');
+  array_walk($variables, 'variable_del');
+}
+
+
