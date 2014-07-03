@@ -1,1 +1,94 @@
 <?php
+/**
+ * @file
+ */
+error_reporting(E_ALL);
+ini_set('display_errors', TRUE);
+ini_set('display_startup_errors', TRUE);
+
+// CModels Helper Functions
+module_load_include('inc', 'islandora_cmodel', 'includes/cmodel_helper_functions');
+
+function islandora_cmodel_menu()
+{
+  $urls['islandora/model/%islandora_cmodel'] = array(
+    'title callback' => 'islandora_drupal_title',
+    'title arguments' => array(2),
+    'page callback' => 'islandora_view_object',
+    'page arguments' => array(2),
+    'type' => MENU_NORMAL_ITEM,
+    'access callback' => 'islandora_object_access_callback',
+    'access arguments' => array(ISLANDORA_VIEW_OBJECTS, 2),
+  );
+
+  $urls['islandora/model/%islandora_cmodel/content'] = array(
+    'title' => 'Content',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_related_objects_form', 2, 'islandora:specimen_cmodel', array('hasModel')),
+    'access callback' => true,
+    //    'access arguments' => array(array(ISLANDORA_VIEW_OBJECTS), 2),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $urls;
+}
+
+/**
+ * islandora_cmodel_action_title
+ *
+ * @param $action
+ * @param $cmodel
+ *
+ * @return string
+ *
+ * Generates a page title given an 'action' and a 'cmodel'.
+ *
+ * For example:
+ *
+ *    Add Specimen
+ *    Ingest Project
+ */
+function islandora_cmodel_action_title($action, $cmodel){
+  return "{$action} {$cmodel->label}";
+}
+
+function islandora_cmodel_theme($existing, $type, $theme, $path) {
+  $themes['cmodel'] = array(
+    'file' => 'theme/theme.inc',
+    'template' => 'theme/cmodel',
+    'variables' => array(
+      'object' => NULL,
+    ),
+  );
+
+  return $themes;
+}
+
+/**
+ * Implements hook_islandora_object_alter
+ *
+ * SUBTYPING - Required
+ *
+ * This function creates a fedora:hasModel relationship between the $object
+ * and all of it's CModel's supertypes. Should not be run for CModels.
+ */
+function islandora_cmodel_islandora_object_alter($object, array &$context) {
+  $object_is_cmodel = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel', 'fedora-system:ContentModel-3.0');
+  if(!$object_is_cmodel){
+
+    // Parent CModel
+    // Don't use the islandora_object_parent_model function. It only works for
+    // objects that have been fully ingested.
+    $cmodel_id = $object->models[0];
+
+    // Merges the object's models with
+    $models = array_merge($object->models, islandora_cmodel_supertypes($cmodel_id));
+    $object->models = $models;
+
+    // Creates a hasParentModel relationship towards the CModel initially chosen.
+    $object->relationships->add(ISLANDORA_MODEL_URI, 'hasParentModel', $cmodel_id);
+
+    foreach($models as $model){
+    }
+  }
+}

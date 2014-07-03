@@ -1,5 +1,5 @@
 name = "Islandora CModel"
-description = "Enhances Islandora CModels"
+description = "A module which provides a number of functions for working with Islandora CModels, and implements CModel polymorphism."
 dependencies[] = islandora
 package = Islandora
 version = 7.x-dev
