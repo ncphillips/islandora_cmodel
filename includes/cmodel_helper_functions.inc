@@ -1,5 +1,5 @@
 <?php
-module_load_include('inc', 'islandora_bioinformatics', 'includes/query_helper_functions');
+module_load_include('inc', 'islandora_related_content', 'includes/query_helper_functions');
 
 define("ISLANDORA_MODEL_URI", 'http://islandora.ca/ontology/model#');
 
