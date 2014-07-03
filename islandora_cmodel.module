@@ -8,6 +8,7 @@ ini_set('display_startup_errors', TRUE);
 
 // CModels Helper Functions
 module_load_include('inc', 'islandora_cmodel', 'includes/cmodel_helper_functions');
+module_load_include('inc', 'islandora_cmodel', 'includes/hook_ingest_steps');
 
 function islandora_cmodel_menu()
 {
@@ -99,7 +100,7 @@ function islandora_cmodel_islandora_object_alter($object, array &$context) {
  *
  * Where CMODEL_PID = fedora_system:ContentModel3.0
  */
-function islandora_bioinformatics_fedora_system_ContentModel_3_0_islandora_view_object($object){
+function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_view_object($object){
   $output = theme('cmodel', array('islandora_object' => $object));
   return array('cmodel' => $output);
 }
