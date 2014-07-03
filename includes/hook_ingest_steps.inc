@@ -10,7 +10,7 @@
  * Implements hook_islandora_ingest_steps()
  * @return array
  */
-function islandora_bioinformatics_islandora_ingest_steps(){
+function islandora_cmodel_islandora_ingest_steps(){
   $ingest_steps = array();
 
   $ingest_steps['set_parent_relationship'] = array(
