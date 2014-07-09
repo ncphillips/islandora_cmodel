@@ -71,6 +71,24 @@ function islandora_cmodel_load($cmodel_id) {
   return $cmodel;
 }
 
+
+function ic_load($cmodel_id){
+
+  $object = $this->cache->get($id);
+  if ($object !== FALSE) {
+    return $object;
+  }
+
+  try {
+    $object = new $this->objectClass($id, $this);
+    $this->cache->set($id, $object);
+    return $object;
+  }
+  catch (RepositoryException $e) {
+    throw $e;
+  }
+}
+
 // Relationships
 /**
  * islandora_cmodel_add_relationship
