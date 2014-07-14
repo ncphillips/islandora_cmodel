@@ -73,25 +73,19 @@ function islandora_cmodel_theme($existing, $type, $theme, $path) {
  * This function creates a fedora:hasModel relationship between the $object
  * and all of it's CModel's supertypes. Should not be run for CModels.
  */
-function islandora_cmodel_islandora_object_alter($object, array &$context) {
-  $object_is_cmodel = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel', 'fedora-system:ContentModel-3.0');
-  if(!$object_is_cmodel){
+function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_object_alter($object, array &$context) {
+  // Parent CModel
+  // Don't use the islandora_object_parent_model function. It only works for
+  // objects that have been fully ingested.
+  $cmodel_id = $object->models[0];
 
-    // Parent CModel
-    // Don't use the islandora_object_parent_model function. It only works for
-    // objects that have been fully ingested.
-    $cmodel_id = $object->models[0];
+  // Merges the object's models with
+  $models = array_merge($object->models, islandora_cmodel_supertypes($cmodel_id));
+  $object->models = $models;
 
-    // Merges the object's models with
-    $models = array_merge($object->models, islandora_cmodel_supertypes($cmodel_id));
-    $object->models = $models;
-
-    // Creates a hasParentModel relationship towards the CModel initially chosen.
-    $object->relationships->add(ISLANDORA_MODEL_URI, 'hasParentModel', $cmodel_id);
-
-    foreach($models as $model){
-    }
-  }
+  // Creates a hasParentModel relationship towards the CModel initially chosen.
+  $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
+  $object->relationships->add(ISLANDORA_MODEL_URI, 'hasParentModel', $cmodel_id);
 }
 
 

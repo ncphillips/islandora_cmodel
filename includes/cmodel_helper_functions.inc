@@ -1,14 +1,12 @@
 <?php
-module_load_include('inc', 'islandora_related_content', 'includes/query_helper_functions');
-
-define("ISLANDORA_MODEL_URI", 'http://islandora.ca/ontology/model#');
-
 /**
  * @file cmodel_functions.php
  *
  * Provides a number of helper functions for when working with CModel objects.
  * The goal is to eventually implement these functions as methods in a Class.
  */
+
+module_load_include('inc', 'islandora_related_content', 'includes/query_helper_functions');
 
 /**
  * islandora_object_parent_model
@@ -20,6 +18,7 @@ define("ISLANDORA_MODEL_URI", 'http://islandora.ca/ontology/model#');
 function islandora_object_parent_model($object_id){
   $object = islandora_object_load($object_id);
   if($object){
+    $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
     $parents = $object->relationships->get(ISLANDORA_MODEL_URI, 'hasParentModel');
 
     if (empty($parents)){
@@ -71,23 +70,6 @@ function islandora_cmodel_load($cmodel_id) {
   return $cmodel;
 }
 
-
-function ic_load($cmodel_id){
-
-  $object = $this->cache->get($id);
-  if ($object !== FALSE) {
-    return $object;
-  }
-
-  try {
-    $object = new $this->objectClass($id, $this);
-    $this->cache->set($id, $object);
-    return $object;
-  }
-  catch (RepositoryException $e) {
-    throw $e;
-  }
-}
 
 // Relationships
 /**
@@ -301,6 +283,7 @@ function islandora_cmodel_parent($cmodel_id) {
   $parents = array(); // This should be an array of length 1.
 
   if($cmodel){
+    $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
     $rels = $cmodel->relationships->get(ISLANDORA_MODEL_URI,  'hasParentModel');
 
     foreach($rels as $rel)
@@ -321,6 +304,7 @@ function islandora_cmodel_supertypes($cmodel_id) {
   $supertypes = array();
 
   if ($cmodel) {
+    $cmodel->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
     $rels = $cmodel->relationships->get(ISLANDORA_MODEL_URI, 'isSubtypeOf');
 
     $supertypes = array();
@@ -406,6 +390,7 @@ function islandora_cmodel_create($cmodel_id, $label, $dscm_path = '', $parent_id
   // Inherit from parent
   if ($parent_id) {
     // Set the Parent
+    $cmodel->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
     $cmodel->relationships->add(ISLANDORA_MODEL_URI, 'hasParentModel', $parent_id);
 
     // Set the supertypes.
