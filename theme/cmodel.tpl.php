@@ -77,7 +77,7 @@ $ro_args = array(
   'cmodels' => array($object->id),
   'relationships' => array('hasModel'),
 );
-$objects = islandora_object_related_islandora_objects($ro_args)['ids'];
+$objects = related_islandora_objects($ro_args)['ids'];
 
 foreach($objects as $o_id){
   $m = islandora_object_parent_model($o_id);
