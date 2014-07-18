@@ -375,17 +375,18 @@ function islandora_cmodel_create($cmodel_id, $label, $dscm_path = '', $parent_id
   $cmodel->label = $label;
   $cmodel->models = 'fedora-system:ContentModel-3.0';
 
-  if ($dscm_path){
-    // DS-COMPOSITE-MODEL Datastream.
-    $dscm = $cmodel->constructDatastream('DS-COMPOSITE-MODEL', 'X');
-    $dscm->label = 'Datastreams';
-    $dscm->mimetype = 'text/xml';
-    $dscm->setContentFromFile($dscm_path, FALSE);
-    $cmodel->ingestDatastream($dscm);
+  // If no DSCM is provided use a default file.
+  if (empty($dscm_path)){
+    $module_path = drupal_get_path('module', 'islandora_cmodel');
+    $dscm_path = "$module_path/xml/default_dscm.xml";
   }
-  else {
-    /** @todo Set up a skeleton dscm. */
-  }
+
+  // DS-COMPOSITE-MODEL Datastream.
+  $dscm = $cmodel->constructDatastream('DS-COMPOSITE-MODEL', 'X');
+  $dscm->label = 'Datastreams';
+  $dscm->mimetype = 'text/xml';
+  $dscm->setContentFromFile($dscm_path, FALSE);
+  $cmodel->ingestDatastream($dscm);
 
   // Inherit from parent
   if ($parent_id) {
