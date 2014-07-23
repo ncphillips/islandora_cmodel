@@ -26,8 +26,16 @@ function islandora_cmodel_islandora_ingest_steps(){
     ),
   );
 
+  $ingest_steps['select_cmodel'] = array(
+    'type' => 'form',
+    'weight' => -1,
+    'form_id' => 'select_cmodel_form',
+  );
+
   return $ingest_steps;
 }
+
+
 
 /**
  * set_parent_relationships
@@ -35,31 +43,13 @@ function islandora_cmodel_islandora_ingest_steps(){
  * @param $args
  */
 function set_parent_relationships($args){
-  // New Object
-  $object = $args['build_info']['args'][0]['object'];
+  $object = $args['islandora']['objects'][0];
 
-  // New object has parents
-  $has_parent = $object->relationships->get(ISLANDORA_RELS_EXT_URI, 'temp');
+  $parent = true ? $args['islandora']['shared_storage']['parent'] : null ;
 
-  if($has_parent){
-    // Remove the temp relationship
-    $object->relationships->remove(ISLANDORA_RELS_EXT_URI, 'temp');
-
-    // Get the ID of the Parent object
-    $parent_id = $has_parent[0]['object']['value'];
-
-    // Get all of the Parent object's CModels.
-    $parent_cmodels = islandora_object_models($parent_id);
-
-    // Get the New Object's CModel.
-    $cmodel_id = $args['build_info']['args'][0]['models'];
-
-    if(sizeof($cmodel_id) > 1) {
-      $cmodel_id = $args['islandora']['step_storage']['xml_form_builder_association_step']['association']['content_model'];
-    }
-    else{
-      $cmodel_id = $cmodel_id[0];
-    }
+  if($parent){
+    $parent_cmodels = islandora_object_models($parent);
+    $cmodel_id = $args['islandora']['shared_storage']['models'][0];
 
     // Get the NO CModel's CMRELS
     $cmodel_rels = islandora_cmodel_relationships_away($cmodel_id);
@@ -71,7 +61,7 @@ function set_parent_relationships($args){
       if (array_intersect($parent_cmodels, array($rel['object']['value']))){
         $ns = $rel['predicate']['namespace'];
         $predicate = $rel['predicate']['value'];
-        $object->relationships->add($ns, $predicate, $parent_id);
+        $object->relationships->add($ns, $predicate, $parent);
       }
     }
   }

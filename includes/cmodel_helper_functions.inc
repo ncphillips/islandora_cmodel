@@ -87,10 +87,10 @@ function islandora_cmodel_add_relationship($sub, $pred_uri, $pred, $object, $typ
   module_load_include('inc', 'islandora', 'islandora.rules');
   $sub_is_cmodel    = islandora_cmodel_load($sub);
   $object_is_cmodel = islandora_cmodel_load($object);
-  $rel_exists       = islandora_object_has_relationship($sub, $pred_uri, $pred, $object, $type);
+  $rel_exists       = islandora_object_has_relationship($sub_is_cmodel, $pred_uri, $pred, $object, $type);
 
   if ($sub_is_cmodel and $object_is_cmodel and !$rel_exists) {
-    islandora_object_add_relationship($sub, $pred_uri, $pred, $object, $type);
+    islandora_object_add_relationship($sub_is_cmodel, $pred_uri, $pred, $object, $type);
     return TRUE;
   }
   /** @todo Produce error messages depending on why this function failed. */

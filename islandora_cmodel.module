@@ -73,7 +73,7 @@ function islandora_cmodel_theme($existing, $type, $theme, $path) {
  * This function creates a fedora:hasModel relationship between the $object
  * and all of it's CModel's supertypes. Should not be run for CModels.
  */
-function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_object_alter($object, array &$context) {
+function islandora_cmodel_islandora_object_alter($object, array &$context) {
   // Parent CModel
   // Don't use the islandora_object_parent_model function. It only works for
   // objects that have been fully ingested.
@@ -97,4 +97,33 @@ function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_object_alter(
 function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_view_object($object){
   $output = theme('cmodel', array('islandora_object' => $object));
   return array('cmodel' => $output);
+}
+
+
+
+function select_cmodel_form($form, &$form_state) {
+  $models = array();
+
+  $stored_models = $form_state['islandora']['shared_storage']['models'];
+
+  if(sizeof($stored_models) > 1){
+    foreach( $stored_models as $model){
+      $models[$model] = $model;
+    }
+  }
+
+  $form['select'] = array(
+    '#type' => 'select',
+    '#title' => t('Content Model'),
+    '#options' => $models,
+  );
+
+  return $form;
+}
+
+
+
+function select_cmodel_form_submit($form, &$form_state){
+  $model = $form_state['values']['select'];
+  $form_state['islandora']['shared_storage']['models'] = array($model);
 }
