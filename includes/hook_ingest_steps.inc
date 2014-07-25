@@ -13,7 +13,7 @@
 function islandora_cmodel_islandora_ingest_steps(){
   $ingest_steps = array();
 
-  $ingest_steps['set_parent_relationship'] = array(
+  $ingest_steps['islandora_cmodel_set_parent_relationship'] = array(
     'type' => 'callback',
     'weight' => 2,
     'do_function' => array(
@@ -26,7 +26,7 @@ function islandora_cmodel_islandora_ingest_steps(){
     ),
   );
 
-  $ingest_steps['select_cmodel'] = array(
+  $ingest_steps['islandora_cmodel_select_cmodel'] = array(
     'type' => 'form',
     'weight' => -1,
     'form_id' => 'select_cmodel_form',
@@ -73,4 +73,29 @@ function set_parent_relationships($args){
  */
 function unset_parent_relationships($args){
   /** @todo */
+}
+
+
+/**
+ * Implements hook_islandora_ingest_steps_alter
+ *
+ * This implementation does two things.
+ *
+ * 1. Adds all the subtypes of each model listed.
+ * 2. If there is NOT more than one model the Select CModel step is removed.
+ */
+function islandora_cmodel_islandora_ingest_steps_alter(array &$steps, array &$form_state) {
+  if($form_state['islandora']['step_id'] != 'islandora_cmodel_select_cmodel'){
+    $models = $form_state['islandora']['shared_storage']['models'];
+
+    foreach($models as $model){
+      $models = array_merge($models, islandora_cmodel_subtypes($model));
+    }
+
+    if (sizeof($models) < 2){
+      unset($steps['islandora_cmodel_select_cmodel']);
+    }
+
+    $form_state['islandora']['shared_storage']['models'] = $models;
+  }
 }

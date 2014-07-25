@@ -2,16 +2,19 @@
 /**
  * @file
  */
+
 error_reporting(E_ALL);
 ini_set('display_errors', TRUE);
 ini_set('display_startup_errors', TRUE);
+
+// RELS EXT URIs
+define("ISLANDORA_MODEL_URI", 'http://islandora.ca/ontology/model#');
 
 // CModels Helper Functions
 module_load_include('inc', 'islandora_cmodel', 'includes/cmodel_helper_functions');
 module_load_include('inc', 'islandora_cmodel', 'includes/hook_ingest_steps');
 
-function islandora_cmodel_menu()
-{
+function islandora_cmodel_menu() {
   $urls['islandora/model/%islandora_cmodel'] = array(
     'title callback' => 'islandora_drupal_title',
     'title arguments' => array(2),
@@ -53,6 +56,9 @@ function islandora_cmodel_action_title($action, $cmodel){
   return "{$action} {$cmodel->label}";
 }
 
+/**
+ * Implements hook_theme
+ */
 function islandora_cmodel_theme($existing, $type, $theme, $path) {
   $themes['cmodel'] = array(
     'file' => 'theme/theme.inc',
@@ -68,24 +74,25 @@ function islandora_cmodel_theme($existing, $type, $theme, $path) {
 /**
  * Implements hook_islandora_object_alter
  *
- * SUBTYPING - Required
- *
  * This function creates a fedora:hasModel relationship between the $object
  * and all of it's CModel's supertypes. Should not be run for CModels.
  */
 function islandora_cmodel_islandora_object_alter($object, array &$context) {
-  // Parent CModel
-  // Don't use the islandora_object_parent_model function. It only works for
-  // objects that have been fully ingested.
-  $cmodel_id = $object->models[0];
+  if($context['action'] == 'ingest'){
+    // Parent CModel
+    // Don't use the islandora_object_parent_model function. It only works for
+    // objects that have been fully ingested.
+    $models = $object->models;
+    $cmodel_id = $models[0];
 
-  // Merges the object's models with
-  $models = array_merge($object->models, islandora_cmodel_supertypes($cmodel_id));
-  $object->models = $models;
+    // Merges the object's models with
+    $models = array_merge($object->models, islandora_cmodel_supertypes($cmodel_id));
+    $object->models = $models;
 
-  // Creates a hasParentModel relationship towards the CModel initially chosen.
-  $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
-  $object->relationships->add(ISLANDORA_MODEL_URI, 'hasParentModel', $cmodel_id);
+    // Creates a hasParentModel relationship towards the CModel initially chosen.
+    $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
+    $object->relationships->add(ISLANDORA_MODEL_URI, 'hasParentModel', $cmodel_id);
+  }
 }
 
 
@@ -100,16 +107,17 @@ function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_view_object($
 }
 
 
-
+/**
+ * select_cmodel_form
+ */
 function select_cmodel_form($form, &$form_state) {
   $models = array();
 
   $stored_models = $form_state['islandora']['shared_storage']['models'];
 
-  if(sizeof($stored_models) > 1){
-    foreach( $stored_models as $model){
-      $models[$model] = $model;
-    }
+  foreach($stored_models as $model_id){
+    $model = islandora_cmodel_load($model_id);
+    $models[$model_id] = $model->label;
   }
 
   $form['select'] = array(

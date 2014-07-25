@@ -75,7 +75,9 @@ foreach($subtypes as $st_id){
 $ro_args = array(
   'object' => $object->id,
   'cmodels' => array($object->id),
-  'relationships' => array('hasModel'),
+  'relationships' => array(
+    'fedora' => array('hasModel'),
+  )
 );
 $objects = related_islandora_objects($ro_args)['ids'];
 
