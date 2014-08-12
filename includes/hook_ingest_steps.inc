@@ -28,7 +28,7 @@ function islandora_cmodel_islandora_ingest_steps(){
 
   $ingest_steps['islandora_cmodel_select_cmodel'] = array(
     'type' => 'form',
-    'weight' => -1,
+    'weight' => 1,
     'form_id' => 'select_cmodel_form',
   );
 
@@ -85,6 +85,7 @@ function unset_parent_relationships($args){
  * 2. If there is NOT more than one model the Select CModel step is removed.
  */
 function islandora_cmodel_islandora_ingest_steps_alter(array &$steps, array &$form_state) {
+  echo $form_state['islandora']['step_id'];
   if($form_state['islandora']['step_id'] != 'islandora_cmodel_select_cmodel'){
     $models = $form_state['islandora']['shared_storage']['models'];
 

@@ -331,7 +331,7 @@ function islandora_cmodel_subtypes($cmodel_id){
       'object' => $cmodel_id,
       'cmodels' => array(),
       'relationships' => array(
-        'fedora'=> array('isSubtypeOf'),
+        'islandora-model'=> array('isSubtypeOf'),
       ),
     );
 
