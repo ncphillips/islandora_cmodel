@@ -52,7 +52,7 @@ function set_parent_relationships($args){
     $cmodel_id = $args['islandora']['shared_storage']['models'][0];
 
     // Get the NO CModel's CMRELS
-    $cmodel_rels = islandora_cmodel_relationships_away($cmodel_id);
+    $cmodel_rels = islandora_cmodel_object_relationships($cmodel_id);
 
     // For each of those CMRELS
     foreach($cmodel_rels as $rel){
@@ -85,7 +85,6 @@ function unset_parent_relationships($args){
  * 2. If there is NOT more than one model the Select CModel step is removed.
  */
 function islandora_cmodel_islandora_ingest_steps_alter(array &$steps, array &$form_state) {
-  echo $form_state['islandora']['step_id'];
   if($form_state['islandora']['step_id'] != 'islandora_cmodel_select_cmodel'){
     $models = $form_state['islandora']['shared_storage']['models'];
 

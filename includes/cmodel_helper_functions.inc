@@ -121,6 +121,8 @@ function islandora_cmodel_remove_relationship($sub, $pred_uri, $pred, $object, $
   return FALSE;
 }
 
+function islandora_cmodel_relationships_away(){}
+
 /**
  * islandora_cmodel_relationships_towards
  *
@@ -152,9 +154,8 @@ function islandora_cmodel_remove_relationship($sub, $pred_uri, $pred, $object, $
  *   )
  *   @endcode
  */
-function islandora_cmodel_relationships_towards($cmodel_id) {
-  $cmodel_ids = array($cmodel_id);
-  $cmodel_ids = array_merge($cmodel_ids, islandora_cmodel_supertypes($cmodel_id));
+function islandora_cmodel_subject_relationships($cmodel_id) {
+  $cmodel_ids = islandora_cmodel_types($cmodel_id);
 
   // Construct the CModel tripples
   $cm_query_array = array();
@@ -209,9 +210,8 @@ function islandora_cmodel_relationships_towards($cmodel_id) {
   return $results;
 }
 
-function islandora_cmodel_relationships_away($cmodel_id){
-  $cmodel_ids = array($cmodel_id);
-  $cmodel_ids = array_merge($cmodel_ids, islandora_cmodel_supertypes($cmodel_id));
+function islandora_cmodel_object_relationships($cmodel_id){
+  $cmodel_ids = islandora_cmodel_types($cmodel_id);
 
   // Construct the CModel tripples
   $cm_query_array = array();
@@ -269,6 +269,10 @@ function islandora_cmodel_relationships_away($cmodel_id){
 
 
 // Polymorphism
+function islandora_cmodel_types($cmodel_id){
+  return array_merge(array($cmodel_id), islandora_cmodel_supertypes($cmodel_id));
+}
+
 /**
  * islandora_cmodel_parent
  *

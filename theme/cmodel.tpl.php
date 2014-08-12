@@ -1,8 +1,9 @@
 <?php
-$object = $variables['islandora_object'];
-$supertypes = islandora_cmodel_supertypes($object->id);
-$subtypes = islandora_cmodel_subtypes($object->id);
-$rels_away = islandora_cmodel_relationships_away($object->id);
+$cmodel = $variables['islandora_object'];
+$supertypes = $variables['supertypes'];
+$subtypes = $variables['subtypes'];
+$child_relationships = $variables['relationships']['subject'];
+$parent_relationships = $variables['relationships']['subject'];
 ?>
 
 
@@ -43,52 +44,55 @@ foreach($subtypes as $st_id){
 </table>
 
 <h2>Relationships</h2>
+<h3>Object Relationships</h3>
+This is a list of relationships defined by the <?echo $cmodel->label; ?> content
+model. Each of these relationships point from the <?echo $cmodel->label; ?>
+ towards some other content model.
 <table>
   <thead>
-<!--    <th>Object</th>-->
+    <th>Object</th>
     <th>Namespace</th>
     <th>Relationship</th>
     <th>Subject</th>
   </thead>
   <tbody>
   <?php
-  foreach($rels_away as $rel ){
+  foreach($parent_relationships as $rel ){
+    $link = l($rel['object']['value'], "islandora/object/{$rel['object']['value']}}");
     echo "<tr>";
-//    echo "<td>{$object->id}</td>";
+    echo "<td>{$cmodel}</td>";
     echo "<td>{$rel['predicate']['alias']}</td>";
     echo "<td>{$rel['predicate']['value']}</td>";
-    echo "<td>{$rel['object']['value']}</td>";
+    echo "<td>$link</td>";
     echo "</tr>";
   }
   ?>
   </tbody>
 </table>
-
-<h2>Objects</h2>
+<h3>Subject Relationships</h3>
+This is a list of relationships defined by other content
+models. The <?echo $cmodel->label; ?> content model is the subject (target) of these
+relationships.
 <table>
-<thead>
-<th>Label</th>
-<th>Type</th>
-</thead>
-<tbody>
-<?
-$ro_args = array(
-  'object' => $object->id,
-  'cmodels' => array($object->id),
-  'relationships' => array(
-    'fedora' => array('hasModel'),
-  )
-);
-$objects = related_islandora_objects($ro_args)['ids'];
-
-foreach($objects as $o_id){
-  $m = islandora_object_parent_model($o_id);
-  $o = islandora_object_load($o_id);
-  echo "<tr>";
-  echo "<td>{$o->label}</td>";
-  echo "<td>{$m}</td>";
-  echo "</tr>";
-}
-?>
+  <thead>
+    <th>Object</th>
+    <th>Namespace</th>
+    <th>Relationship</th>
+    <th>Subject</th>
+  </thead>
+  <tbody>
+  <?php
+  foreach($child_relationships as $rel ){
+    $link = l($rel['object']['value'], "islandora/object/{$rel['object']['value']}}");
+    echo "<tr>";
+    echo "<td>$link</td>";
+    echo "<td>{$rel['predicate']['alias']}</td>";
+    echo "<td>{$rel['predicate']['value']}</td>";
+    echo "<td>{$cmodel}</td>";
+    echo "</tr>";
+  }
+  ?>
+  </tbody>
+</table>
 </tbody>
 </table>
