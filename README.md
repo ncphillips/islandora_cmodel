@@ -5,6 +5,7 @@
 
 Solr transforms are located in the the `fedoragsearch` folder. Depending on what system is being
 used, it may either be located at:
+
     /usr/local/fedora/tomcat6/webapps/
 
 or:
