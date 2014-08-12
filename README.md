@@ -1,7 +1,8 @@
+# Islandora CModel
 1. Solr Indexing
 2. Islandora CModel Concepts
 
-# Solr Indexing
+## Solr Indexing
 
 In order for the Islandora CModel module to function properly, a couple changes must be made to the existing Solr transforms.
 
@@ -20,7 +21,7 @@ From here, move into the FgsIndex directory:
 
 Commands in the next two sections assume you are starting from this directory.
 
-### CModel Indexing
+#### CModel Indexing
 This module requires CModel indexing in Solr to be turned on.
 
     $ vim foxmlToSolr.xslt
@@ -35,7 +36,7 @@ remove the second half of the 'or' so it looks like this:
 
     <xsl:if test="not(foxml:digitalObject/foxml:datastream[@ID='METHODMAP'])">
 
-### Modify RELS-EXT_to_solr.xslt
+#### Modify RELS-EXT_to_solr.xslt
 
     $ vim islandora_transforms/RELS-EXT_to_solr.xlst
 
@@ -72,14 +73,14 @@ Add an extra field to this tag so it looks like:
 
 
 
-# Islandora CModel Concepts
+## Islandora CModel Concepts
 
 This module introduces two concepts two Islandora CModel's:
 
   1. Subtypes
   2. CModle RELS-EXT Relationships
 
-## Subtypes
+### Subtypes
 
 A **subtype** is a CModel that is related to another CModel (the supertype) by the notion of substitutability.
 
@@ -87,7 +88,7 @@ Subtyping in Islandora is **width based**, meaning subtypes only add to their su
 
 Throughout this text we will use the symbol `<:` to denote the phrase "is a subtype of", and `</:` to denote the phrase "is NOT a subtype of".
 
-##### Properties of Subtypes
+###### Properties of Subtypes
 
 1. **Transitive:**
 
@@ -102,7 +103,7 @@ Throughout this text we will use the symbol `<:` to denote the phrase "is a subt
 	if ( a <: b ) and ( a <: c ) then either ( b <: c ) or ( c <: b), but not both.
 
 
-#### RDF Relationships
+##### RDF Relationships
 Let A, B, C, and D be CModels such that:
 
 	B <: A
@@ -134,7 +135,7 @@ D's relationships:
 	D islandora-model:isSubtypeOf A
 	D islandora-model:isSubtypeOf C
 
-##### Sets
+###### Sets
 
 For each CModel there are two sets, one for each of the RDF relationships. These sets are `parentModel` and `supertypes`.
 
@@ -143,7 +144,7 @@ For each CModel there are two sets, one for each of the RDF relationships. These
 	D.supertypes == D.parent UNION D.parent.supertypes
 
 
-### Subtype Instances
+#### Subtype Instances
 When creating an instance of a CModel, the resulting object will have a `fedora-model:hasModel` relationship to the CModel, as well as all of that CModel's supertypes.
 
 For example, let D_Inst be an instance of the D CModel, it will have the following relationships:
@@ -152,7 +153,7 @@ For example, let D_Inst be an instance of the D CModel, it will have the followi
 	D_Inst	fedora-model:hasModel	C
 	D_Inst	fedora-model:hasModel	A
 
-### Subtype Inheritence
+#### Subtype Inheritence
 
 Let ( A <: B )
 
@@ -169,7 +170,7 @@ Future plans include making the following inheritable:
 
 Instances of a subtype will show up in the results when searching for it's supertype, but not vice versa.
 
-## CModel RELS-EXT
+### CModel RELS-EXT
 Relationships defined in the RELS-EXT of a CModel describe how data of different content types relate to one another.
 
 For example, let A and B be CModels such that
@@ -178,11 +179,11 @@ For example, let A and B be CModels such that
 
 We can assume that an instance of A will have a `fedora:isPartOf` relationship to some instance(s) of B. The reverse relationship is not expected, unless explicitly defined.
 
-#### fedora-model & islandora-model
+##### fedora-model & islandora-model
 
 Relationships in the fedora-model and islandora-model namespaces of CModels do not indicate relationships between data objects.
 
-#### Future Plans
+##### Future Plans
 
 It would be useful if, in the future, we had some method of defining the cardinality for these relationships.
 
