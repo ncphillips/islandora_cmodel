@@ -24,7 +24,8 @@ This module requires CModel indexing in Solr to be turned on.
 
 Aroud line 96 you will see the following line:
 
-    <xsl:if test="not(foxml:digitalObject/foxml:datastream[@ID='METHODMAP' or @ID='DS-COMPOSITE-MODEL'])">
+    <xsl:if test="not(foxml:digitalObject/foxml:datastream[@ID='METHODMAP'
+    or @ID='DS-COMPOSITE-MODEL'])">
 
 remove the second half of the 'or' so it looks like this:
 
@@ -36,7 +37,8 @@ remove the second half of the 'or' so it looks like this:
 
 Around line 14 you will see:
 
-    <xsl:for-each select="$content//rdf:Description/*[@rdf:resource] | $content//rdf:description/*[@rdf:resource]">
+    <xsl:for-each select="$content//rdf:Description/*[@rdf:resource]
+        | $content//rdf:description/*[@rdf:resource]">
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, local-name(), '_uri', $suffix)"/>
@@ -47,7 +49,8 @@ Around line 14 you will see:
 
 Add an extra field to this tag so it looks like:
 
-    <xsl:for-each select="$content//rdf:Description/*[@rdf:resource] | $content//rdf:description/*[@rdf:resource]">
+    <xsl:for-each select="$content//rdf:Description/*[@rdf:resource]
+        | $content//rdf:description/*[@rdf:resource]">
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, local-name(), '_uri', $suffix)"/>
