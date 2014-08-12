@@ -6,7 +6,7 @@
  * The goal is to eventually implement these functions as methods in a Class.
  */
 
-module_load_include('inc', 'islandora_related_content', 'includes/query_helper_functions');
+module_load_include('inc', 'islandora_cmodel', 'includes/query_helper_functions');
 
 /**
  * islandora_object_parent_model
