@@ -59,7 +59,8 @@ Add an extra field to this tag so it looks like:
       </field>
       <field>
         <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, substring-before(name(), ':'), '_', local-name(), '_uri', $suffix)"/>
+          <xsl:value-of select="concat($prefix, substring-before(name(), ':'),
+            '_', local-name(), '_uri', $suffix)"/>
         </xsl:attribute>
         <xsl:value-of select="@rdf:resource"/>
       </field>
