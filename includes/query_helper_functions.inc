@@ -50,97 +50,130 @@ function related_islandora_objects($args){
   $page = !empty($args['page']) ? $args['page'] : 0;
   $other = !empty($args['other']) ? $args['other'] : array();
   $unrelated = !empty($args['unrelated']) ? $args['unrelated'] : false;
+  $direction = !empty($args['direction']) ? $args['direction'] : 'LEFT';
 
-  $query_parts = array();
-
-  if($other)
-    $query_parts[] = $other;
-
-  // CModel rels queries
-  $cmodel_subquery = array();
-  foreach($cmodel_ids as $cmodel_id){
-    $cmodel_id = str_replace(':', '\:', $cmodel_id);
-    $cmodel_subquery[] = "RELS_EXT_hasModel_uri_ms:$cmodel_id";
-    $cmodel_subquery[] = "RELS_EXT_hasModel_uri_ms:info\:fedora/$cmodel_id";
-  }
-
-  if ($cmodel_subquery)
-    $query_parts[] = '(' . implode(' OR ', $cmodel_subquery) . ')';
-
-
-  // RELSEXT queries
-  $fields = array();
-  $rel_subqueries = array();
-  if($object_id != '*'){
-
-    if(empty($relationships)){
-        $FEDORA_RELS_EXT_RELATIONSHIPS =  array(
-            'fedora' => array(
-                  'fedoraRelationship',
-                  'isPartOf',             'hasPart',
-                  'isConstituentOf',      'hasConstituent',
-                  'isMemberOf',           'hasMember',
-                  'isSubsetOf',           'hasSubset',
-                  'isMemberOfCollection', 'hasCollectionMember',
-                  'isDerivationOf',       'hasDerivation',
-                  'isDependentOf',        'hasDependent',
-                  'isDescriptionOf',      'hasDescription',
-                  'isMetadataFor',        'hasMetadata',
-                  'isAnnotationOf',       'hasAnnotation',
-                  'hasEquivalent'
-                )
-            );
-        $relationships = $FEDORA_RELS_EXT_RELATIONSHIPS;
-      }
-
+  if($direction == 'RIGHT'){
+    $object = is_object($object_id)? $object_id : islandora_object_load($object_id);
+    $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
+    $ns = '';
+    $rel = '';
     foreach($relationships as $ns => $rels){
+      switch ($ns){
+        case ('fedora'):
+        case ('fedora-system'):
+          $ns = FEDORA_RELS_EXT_URI;
+          break;
+        case ('fedora-model'):
+          $ns = FEDORA_MODEL_URI;
+          break;
+        case ('islandora'):
+          $ns = ISLANDORA_RELS_EXT_URI;
+          break;
+        case ('islandora-model'):
+          $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
+          $ns = ISLANDORA_MODEL_URI;
+          break;
+        default:
+          return FALSE;
+      }
+      $r = array();
       foreach($rels as $rel){
-        $rel_subqueries[] = "RELS_EXT_{$rel}_uri_ms:{$object_id}";
-        $rel_subqueries[] = "RELS_EXT_{$rel}_uri_ms:info\:fedora/{$object_id}";
-        $rel_subqueries[] = "RELS_EXT_{$ns}_{$rel}_uri_ms:{$object_id}";
-        $rel_subqueries[] = "RELS_EXT_{$ns}_{$rel}_uri_ms:info\:fedora/{$object_id}";
+        $r = array_merge($object->relationships->get($ns, $rel), $r);
       }
     }
   }
+  elseif ($direction == 'LEFT'){
+    $query_parts = array();
 
-  if ($rel_subqueries) {
-    if (!$unrelated){
-      $query_parts[] = '(' . implode(' OR ',$rel_subqueries) . ')';
+    if($other)
+      $query_parts[] = $other;
+
+    // CModel rels queries
+    $cmodel_subquery = array();
+    foreach($cmodel_ids as $cmodel_id){
+      $cmodel_id = str_replace(':', '\:', $cmodel_id);
+      $cmodel_subquery[] = "RELS_EXT_hasModel_uri_ms:$cmodel_id";
+      $cmodel_subquery[] = "RELS_EXT_hasModel_uri_ms:info\:fedora/$cmodel_id";
     }
-    else {
-      $query_parts[] = '( *:* NOT ('.implode(' OR ', $rel_subqueries).'))';
+
+    if ($cmodel_subquery)
+      $query_parts[] = '(' . implode(' OR ', $cmodel_subquery) . ')';
+
+
+    // RELSEXT queries
+    $fields = array();
+    $rel_subqueries = array();
+    if($object_id != '*'){
+
+      if(empty($relationships)){
+                                  $FEDORA_RELS_EXT_RELATIONSHIPS =  array(
+                                  'fedora' => array(
+                                  'fedoraRelationship',
+                                  'isPartOf',             'hasPart',
+                                  'isConstituentOf',      'hasConstituent',
+                                  'isMemberOf',           'hasMember',
+                                  'isSubsetOf',           'hasSubset',
+                                  'isMemberOfCollection', 'hasCollectionMember',
+                                  'isDerivationOf',       'hasDerivation',
+                                  'isDependentOf',        'hasDependent',
+                                  'isDescriptionOf',      'hasDescription',
+                                  'isMetadataFor',        'hasMetadata',
+                                  'isAnnotationOf',       'hasAnnotation',
+                                  'hasEquivalent'
+                                  )
+                                  );
+                                  $relationships = $FEDORA_RELS_EXT_RELATIONSHIPS;
+                                     }
+
+      foreach($relationships as $ns => $rels){
+        foreach($rels as $rel){
+          $rel_subqueries[] = "RELS_EXT_{$rel}_uri_ms:{$object_id}";
+          $rel_subqueries[] = "RELS_EXT_{$rel}_uri_ms:info\:fedora/{$object_id}";
+          $rel_subqueries[] = "RELS_EXT_{$ns}_{$rel}_uri_ms:{$object_id}";
+          $rel_subqueries[] = "RELS_EXT_{$ns}_{$rel}_uri_ms:info\:fedora/{$object_id}";
+        }
+      }
     }
+
+    if ($rel_subqueries) {
+      if (!$unrelated){
+        $query_parts[] = '(' . implode(' OR ',$rel_subqueries) . ')';
+      }
+      else {
+        $query_parts[] = '( *:* NOT ('.implode(' OR ', $rel_subqueries).'))';
+      }
+    }
+
+    // Whole Query
+    $query = implode(' AND ', $query_parts);
+  //echo '<br/><pre>';
+  //var_dump($query);
+  //echo '</pre>';
+
+    // Set page
+    $_GET['page'] =  $page;
+
+    file_put_contents('/Users/nolan/Desktop/query.txt', $query);
+
+    // Execute Query
+    $query_processor->buildAndExecuteQuery($query);
+
+    $solr_results = $query_processor->islandoraSolrResult;
+
+  //  var_dump($solr_results);
+
+
+    if(!empty($solr_results)){
+      // Generate list of PIDs
+      foreach($solr_results['response']['objects'] as $object_id){
+        $results['ids'][] = $object_id['PID'];
+      }
+      $results['num_found'] = $solr_results['response']['numFound'];
+      $results['num_pages'] = (int)($results['num_found'] / variable_get('islandora_solr_num_of_results', 5)) + 1;
+    }
+
+    return $results;
   }
-
-  // Whole Query
-  $query = implode(' AND ', $query_parts);
-//echo '<br/><pre>';
-//var_dump($query);
-//echo '</pre>';
-
-  // Set page
-  $_GET['page'] =  $page;
-
-  file_put_contents('/Users/nolan/Desktop/query.txt', $query);
-
-  // Execute Query
-  $query_processor->buildAndExecuteQuery($query);
-
-  $solr_results = $query_processor->islandoraSolrResult;
-
-//  var_dump($solr_results);
-
-
-  if(!empty($solr_results)){
-    // Generate list of PIDs
-    foreach($solr_results['response']['objects'] as $object_id){
-      $results['ids'][] = $object_id['PID'];
-    }
-    $results['num_found'] = $solr_results['response']['numFound'];
-    $results['num_pages'] = (int)($results['num_found'] / variable_get('islandora_solr_num_of_results', 5)) + 1;
-  }
-
-  return $results;
 }
 
 
