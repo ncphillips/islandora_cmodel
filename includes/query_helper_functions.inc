@@ -5,6 +5,8 @@
  */
 
 /**
+ * DEPRACTED
+ *
  * islandora_object_related_islandora_objects
  *
  * @param       $object_id

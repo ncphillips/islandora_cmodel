@@ -331,20 +331,15 @@ function islandora_cmodel_subtypes($cmodel_id){
   $cmodel = islandora_cmodel_load($cmodel_id);
 
   if($cmodel){
-    $ro_args = array(
-      'object' => $cmodel_id,
-      'cmodels' => array(),
-      'relationships' => array(
-        'islandora-model'=> array('isSubtypeOf'),
+    $iqs = new IslandoraSolrQueryset();
+    $iqs->fields = array(
+      'RELS_EXT_isSubtypeOf_uri_ms' => array(
+        "info:fedora/$cmodel_id"
       ),
     );
 
-    $query_results = related_islandora_objects($ro_args)['ids'];
+    $subtypes = $iqs->objects;
 
-    $subtypes = array();
-    foreach($query_results as $subtype_id){
-      $subtypes[] = $subtype_id;
-    }
     return $subtypes;
   }
   else return null;
@@ -399,14 +394,6 @@ function islandora_cmodel_create($cmodel_id, $label, $dscm_path = '', $parent_id
     // Set the Parent
     $cmodel->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
     $cmodel->relationships->add(ISLANDORA_MODEL_URI, 'hasParentModel', $parent_id);
-
-    // Set the supertypes.
-    $supertypes = islandora_cmodel_supertypes($parent_id);
-    $supertypes[] = $parent_id;
-
-    foreach($supertypes as $supertype){
-      $cmodel->relationships->add(ISLANDORA_MODEL_URI, 'isSubtypeOf', $supertype);
-    }
   }
 
   return $cmodel;

@@ -78,7 +78,9 @@ function islandora_cmodel_theme($existing, $type, $theme, $path) {
  * and all of it's CModel's supertypes. Should not be run for CModels.
  */
 function islandora_cmodel_islandora_object_alter($object, array &$context) {
-  if($context['action'] == 'ingest'){
+  $models = $object->models;
+  $cm = in_array('fedora-system:ContentModel-3.0', $models);
+  if($context['action'] == 'ingest' and !$cm){
     // Parent CModel
     // Don't use the islandora_object_parent_model function. It only works for
     // objects that have been fully ingested.
@@ -95,11 +97,31 @@ function islandora_cmodel_islandora_object_alter($object, array &$context) {
   }
 }
 
+/**
+ *
+ */
+function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_object_alter($object, &$context){
+  if($context['action'] == 'ingest'){
+    $models = $object->models;
+    $parent_id = $object->relationships->get(ISLANDORA_MODEL_URI, 'hasParentModel')[0]['object']['value'];
+
+    $supertypes = islandora_cmodel_supertypes($parent_id);
+    if($parent_id){
+      $supertypes[] = $parent_id;
+    }
+
+    foreach($supertypes as $supertype){
+      if(empty($object->relationships->get(ISLANDORA_RELS_EXT_URI, 'isSubtypeOf', $supertype))){
+        $object->relationships->add(ISLANDORA_MODEL_URI, 'isSubtypeOf', $supertype);
+      }
+    }
+  }
+}
 
 /**
  * Implements hook_CMODEL_PID_islandora_view_object()
  *
- * Where CMODEL_PID = fedora_system:ContentModel3.0
+ * Where CMODEL_PID = fedora-system:ContentModel-3.0
  */
 function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_view_object($object){
   $output = theme('cmodel', array('islandora_object' => $object));
