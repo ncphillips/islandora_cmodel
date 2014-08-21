@@ -139,7 +139,7 @@ function select_cmodel_form($form, &$form_state) {
 
   foreach($stored_models as $model_id){
     $model = islandora_cmodel_load($model_id);
-    $models[$model_id] = $model->label;
+    $models[$model->id] = $model->label;
   }
 
   $form['select'] = array(
