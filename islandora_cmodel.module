@@ -13,7 +13,7 @@ ini_set('display_startup_errors', TRUE);
  */
 define("ISLANDORA_MODEL_URI", 'http://islandora.ca/ontology/model#');
 
-module_load_include('inc', 'islandora_cmodel', 'includes/cmodel_helper_functions');
+module_load_include('inc', 'islandora_cmodel', 'includes/cmodel_functions');
 module_load_include('inc', 'islandora_cmodel', 'includes/object_functions');
 module_load_include('inc', 'islandora_cmodel', 'includes/hook_ingest_steps');
 

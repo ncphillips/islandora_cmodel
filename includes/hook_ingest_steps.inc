@@ -62,7 +62,7 @@ function set_parent_relationships($args){
     $cmodel_id = $args['islandora']['shared_storage']['models'][0];
 
     // Get the NO CModel's CMRELS
-    $cmodel_rels = islandora_cmodel_object_relationships($cmodel_id);
+    $cmodel_rels = islandora_cmodel_relationships($cmodel_id);
 
     // For each of those CMRELS
     foreach($cmodel_rels as $rel){

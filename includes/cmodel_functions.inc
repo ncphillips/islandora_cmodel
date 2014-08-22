@@ -78,10 +78,6 @@ function islandora_cmodel_remove_relationship($sub, $pred_uri, $pred, $object, $
   return FALSE;
 }
 
-
-function islandora_cmodel_subject_relationships($cmodel_id) { }
-function islandora_cmodel_object_relationships($cmodel_id){}
-
 /**
  * islandora_cmodel_relationship
  *
@@ -134,7 +130,6 @@ function islandora_cmodel_relationships($cmodel_id){
       FILTER(!REGEX(STR(?relationship), 'Model'))
     }";
 
-  var_dump($query);
   // Connect to Tuque and perform the query.
   $tuque = new IslandoraTuque();
   $query_results= $tuque->repository->ri->sparqlQuery($query);

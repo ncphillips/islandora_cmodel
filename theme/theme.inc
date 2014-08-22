@@ -15,6 +15,5 @@ function islandora_cmodel_preprocess_cmodel(array &$variables){
   $cmodel = islandora_cmodel_load($variables['islandora_object']);
   $variables['supertypes'] = islandora_cmodel_supertypes($cmodel);
   $variables['subtypes'] = islandora_cmodel_subtypes($cmodel);
-  $variables['relationships']['subject'] = islandora_cmodel_subject_relationships($cmodel);
-  $variables['relationships']['object'] = islandora_cmodel_object_relationships($cmodel);
+  $variables['relationships'] = islandora_cmodel_relationships($cmodel);
 }
