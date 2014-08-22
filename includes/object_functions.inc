@@ -50,12 +50,7 @@ function islandora_object_parent_model($object_id){
  * The object's models array, minus the FedoraObject cmodel.
  */
 function islandora_object_models($object_id){
-  if(is_object($object_id)){
-    $object = $object_id;
-  }
-  else{
-    $object = islandora_object_load($object_id);
-  }
+  $parent = islandora_object_parent_model($object_id);
+  return islandora_cmodel_supertypes($parent);
 
-  return array_diff($object->models, array('fedora-system:FedoraObject-3.0'));
 }

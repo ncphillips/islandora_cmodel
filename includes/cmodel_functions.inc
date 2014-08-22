@@ -168,15 +168,6 @@ function islandora_cmodel_relationships($cmodel_id){
 
 // Polymorphism
 /**
- * @param $cmodel_id
- * @return array
- * An array of PIDS including the $cmodel_id and each of it's supertypes.
- */
-function islandora_cmodel_types($cmodel_id){
-  return array_merge(array($cmodel_id), islandora_cmodel_supertypes($cmodel_id));
-}
-
-/**
  * islandora_cmodel_parent
  *
  * @param $cmodel_id
@@ -187,16 +178,15 @@ function islandora_cmodel_types($cmodel_id){
  */
 function islandora_cmodel_parent($cmodel_id) {
   $cmodel = islandora_cmodel_load($cmodel_id);
-  $parents = array(); // This should be an array of length 1.
 
   if($cmodel){
     $cmodel->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
     $rels = $cmodel->relationships->get(ISLANDORA_MODEL_URI,  'hasParentModel');
 
-    foreach($rels as $rel)
-      $parents[] = $rel['object']['value'];
+    if(sizeof($rels) >= 1)
+      return $rels[0]['object']['value'];
   }
-  return $parents;
+  return null;
 }
 
 /**
@@ -206,19 +196,19 @@ function islandora_cmodel_parent($cmodel_id) {
  * @return array
  * Contains the PIDs of all CModels that $cmodel_id subtypes from.
  */
-function islandora_cmodel_supertypes($cmodel_id) {
-  $cmodel = islandora_cmodel_load($cmodel_id);
-  $supertypes = array();
+function islandora_cmodel_types($cmodel_id){
 
-  if ($cmodel) {
-    $cmodel->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
-    $rels = $cmodel->relationships->get(ISLANDORA_MODEL_URI, 'isSubtypeOf');
-
-    $supertypes = array();
-    foreach($rels as $rel){
-      $supertypes[] = $rel['object']['value'];
-    }
+  $parent = islandora_cmodel_parent($cmodel_id);
+  if ($parent != 'fedora-system:ContentModel-3.0'){
+    $supertypes = array_merge(
+      islandora_cmodel_types($parent),
+      array($cmodel_id)
+    );
   }
+  else{
+    $supertypes = array($cmodel_id);
+  }
+
   return $supertypes;
 }
 

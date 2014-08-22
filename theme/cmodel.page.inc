@@ -13,6 +13,17 @@
  *
  */
 function islandora_cmodel_page($variables){
-  // Provide hooks to modify page.
+  $page = array();
+  $page_state = array();
+
+  drupal_alter('islandora_cmodel_page', $page, $page_state);
+
+  $supertype_hooks = array();
+  foreach($variables['supertypes'] as $supertype){
+    $supertype = str_replace(array(':', '-', '.'), "_", $supertype);
+    $hook = "{$supertype}_islandora_cmodel_page";
+    drupal_alter($hook, $page, $page_state);
+  }
+
   return "Hello";
 }

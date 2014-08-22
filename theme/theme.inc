@@ -13,7 +13,7 @@
  */
 function islandora_cmodel_preprocess_cmodel(array &$variables){
   $cmodel = islandora_cmodel_load($variables['islandora_object']);
-  $variables['supertypes'] = islandora_cmodel_supertypes($cmodel);
+  $variables['supertypes'] = islandora_cmodel_supertypes_ordered($cmodel);
   $variables['subtypes'] = islandora_cmodel_subtypes($cmodel);
   $variables['relationships'] = islandora_cmodel_relationships($cmodel);
 }
