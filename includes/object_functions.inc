@@ -51,6 +51,6 @@ function islandora_object_parent_model($object_id){
  */
 function islandora_object_models($object_id){
   $parent = islandora_object_parent_model($object_id);
-  return islandora_cmodel_supertypes($parent);
+  return islandora_cmodel_types($parent);
 
 }

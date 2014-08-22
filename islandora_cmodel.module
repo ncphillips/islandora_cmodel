@@ -63,7 +63,7 @@ function islandora_cmodel_islandora_object_alter($object, array &$context) {
     $cmodel_id = $models[0];
 
     // Merges the object's models with
-    $models = array_merge($object->models, islandora_cmodel_supertypes($cmodel_id));
+    $models = array_merge($object->models, islandora_cmodel_types($cmodel_id));
     $object->models = $models;
 
     // Creates a hasParentModel relationship towards the CModel initially chosen.
@@ -85,10 +85,7 @@ function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_object_alter(
     /** If an islandora-model:hasParentModel relationship is defined for this CModel, */
     $parent_id = $object->relationships->get(ISLANDORA_MODEL_URI, 'hasParentModel')[0]['object']['value'];
 
-    $supertypes = islandora_cmodel_supertypes($parent_id);
-    if($parent_id){
-      $supertypes[] = $parent_id;
-    }
+    $supertypes = islandora_cmodel_types($parent_id);
 
     /**
      * then an islandora-model:isSubtypeOf relationship is made between it, and all of its

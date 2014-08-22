@@ -165,7 +165,7 @@ function islandora_cmodel_relationships($cmodel_id){
   return $results;
 }
 
-
+function islandora_cmodel_supertypes(){}
 // Polymorphism
 /**
  * islandora_cmodel_parent
@@ -199,7 +199,7 @@ function islandora_cmodel_parent($cmodel_id) {
 function islandora_cmodel_types($cmodel_id){
 
   $parent = islandora_cmodel_parent($cmodel_id);
-  if ($parent != 'fedora-system:ContentModel-3.0'){
+  if ($parent and $parent != 'fedora-system:ContentModel-3.0'){
     $supertypes = array_merge(
       islandora_cmodel_types($parent),
       array($cmodel_id)
