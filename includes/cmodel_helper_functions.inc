@@ -1,50 +1,7 @@
 <?php
 /**
- * @file cmodel_functions.php
- *
- * Provides a number of helper functions for when working with CModel objects.
- * The goal is to eventually implement these functions as methods in a Class.
+ * @file
  */
-
-module_load_include('inc', 'islandora_cmodel', 'includes/query_helper_functions');
-
-/**
- * islandora_object_parent_model
- *
- * @param $object_id
- * @return String|null
- * The PID of the object's parent.
- */
-function islandora_object_parent_model($object_id){
-  $object = islandora_object_load($object_id);
-  if($object){
-    $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
-    $parents = $object->relationships->get(ISLANDORA_MODEL_URI, 'hasParentModel');
-
-    if (empty($parents)){
-      return $object->models[0];
-    }
-
-    return $parents[0]['object']['value'];
-  }
-
-  return null;
-}
-
-/**
- * islandora_object_models
- *
- * @param $object_id
- *
- * @return array
- * The object's models array, minus the FedoraObject cmodel.
- */
-function islandora_object_models($object_id){
-  $object = islandora_object_load($object_id);
-
-  return array_diff($object->models, array('fedora-system:FedoraObject-3.0'));
-}
-
 
 /**
  * Loads an Islandora Object if it is a CModel.
@@ -121,10 +78,12 @@ function islandora_cmodel_remove_relationship($sub, $pred_uri, $pred, $object, $
   return FALSE;
 }
 
-function islandora_cmodel_relationships_away(){}
+
+function islandora_cmodel_subject_relationships($cmodel_id) { }
+function islandora_cmodel_object_relationships($cmodel_id){}
 
 /**
- * islandora_cmodel_relationships_towards
+ * islandora_cmodel_relationship
  *
  * @param $cmodel_id
  *
@@ -132,35 +91,30 @@ function islandora_cmodel_relationships_away(){}
  *   This returns an indexed array with all CModel relationships towards this
  *   object. The array is of the form:
  *   @code
- *   Array
- *   (
- *       [0] => Array
- *           (
- *               [predicate] => Array
- *                   (
- *                       [value] => thepredicate
- *                       [alias] => thexmlprefix
- *                       [namespace] => http://crazycool.com#
- *                   )
- *
- *               [object] => Array
- *                   (
- *                       [literal] => TRUE
- *                       [value] => test
- *                   )
- *
- *           )
- *
- *   )
+ *   Array(
+ *    'subject' => array(
+ *      'literal' => false,
+ *      'value' => 'islandora:specimen_cmodel,
+ *    ),
+ *    'predicate' => array(
+ *      'value' => 'isPartOf',
+ *      'alias' => 'fedora',
+ *      'namespace' => 'info:fedora/fedora-system:def/model#'
+ *    ),
+ *    'object' => array(
+ *      'literal' => false,
+ *      'value' => 'islandora:project_cmodel',
+ *    ),
+ *  )
  *   @endcode
  */
-function islandora_cmodel_subject_relationships($cmodel_id) {
+function islandora_cmodel_relationships($cmodel_id){
   $cmodel_ids = islandora_cmodel_types($cmodel_id);
 
   // Construct the CModel tripples
   $cm_query_array = array();
   foreach($cmodel_ids as $id){
-    $cm_query_array[] = '{' . "?id ?relationship <info:fedora/$id>" . '}';
+    $cm_query_array[] = '{' . "?subject ?relationship <info:fedora/$id>" . '}';
   }
   $cm_query = implode(' UNION ', $cm_query_array);
 
@@ -171,14 +125,16 @@ function islandora_cmodel_subject_relationships($cmodel_id) {
     FROM <#ri>
     WHERE
     {
-      {?id fedora-model:hasModel <info:fedora/fedora-system:ContentModel-3.0>}
+      {?subject fedora-model:hasModel <info:fedora/fedora-system:ContentModel-3.0>}
       {
         $cm_query
       }
+      {?subject ?relationship ?object}
       FILTER(!REGEX(STR(?relationship), 'Subtype'))
       FILTER(!REGEX(STR(?relationship), 'Model'))
     }";
 
+  var_dump($query);
   // Connect to Tuque and perform the query.
   $tuque = new IslandoraTuque();
   $query_results= $tuque->repository->ri->sparqlQuery($query);
@@ -195,6 +151,10 @@ function islandora_cmodel_subject_relationships($cmodel_id) {
     preg_match($alias_pattern,           $qr['relationship']['value'], $alias);
     preg_match($namespace_pattern,       $qr['relationship']['uri'],   $namespace);
     $results[] = array(
+      'subject' => array(
+        'literal' => false,
+        'value' => $qr['subject']['value'],
+      ),
       'predicate' => array(
         'value' => $pred[1],
         'alias' => $alias[1],
@@ -202,64 +162,7 @@ function islandora_cmodel_subject_relationships($cmodel_id) {
       ),
       'object' => array(
         'literal' => false,
-        'value' => $qr['id']['value'],
-      ),
-    );
-  }
-
-  return $results;
-}
-
-function islandora_cmodel_object_relationships($cmodel_id){
-  $cmodel_ids = islandora_cmodel_types($cmodel_id);
-
-  // Construct the CModel tripples
-  $cm_query_array = array();
-  foreach($cmodel_ids as $id){
-    $cm_query_array[] = '{' . "<info:fedora/$id> ?relationship ?id " . '}';
-  }
-  $cm_query = implode(' UNION ', $cm_query_array);
-
-  // Construct Query
-  $query = "
-    PREFIX fedora-model: <info:fedora/fedora-system:def/model#>
-    SELECT *
-    FROM <#ri>
-    WHERE
-    {
-      {?id fedora-model:hasModel <info:fedora/fedora-system:ContentModel-3.0>}
-      {
-        $cm_query
-      }
-      FILTER(!REGEX(STR(?relationship), 'Subtype'))
-      FILTER(!REGEX(STR(?relationship), 'Model'))
-    }";
-
-
-  // Connect to Tuque and perform the query.
-  $tuque = new IslandoraTuque();
-  $query_results= $tuque->repository->ri->sparqlQuery($query);
-
-  // Regex Patterns
-  $predicate_value_pattern  = '/^.*#(.*)$/';
-  $alias_pattern            = '/^(.*):.*$/';
-  $namespace_pattern        = '/^(.*#).*$/';
-
-  // Transform the SPARQL results into the FedoraRelationship::get() format.
-  $results = array();
-  foreach($query_results as $qr){
-    preg_match($predicate_value_pattern, $qr['relationship']['value'], $pred);
-    preg_match($alias_pattern,           $qr['relationship']['value'], $alias);
-    preg_match($namespace_pattern,       $qr['relationship']['uri'],   $namespace);
-    $results[] = array(
-      'predicate' => array(
-        'value' => $pred[1],
-        'alias' => $alias[1],
-        'namespace' => $namespace[1],
-      ),
-      'object' => array(
-        'literal' => false,
-        'value' => $qr['id']['value'],
+        'value' => $qr['object']['value'],
       ),
     );
   }
@@ -269,6 +172,11 @@ function islandora_cmodel_object_relationships($cmodel_id){
 
 
 // Polymorphism
+/**
+ * @param $cmodel_id
+ * @return array
+ * An array of PIDS including the $cmodel_id and each of it's supertypes.
+ */
 function islandora_cmodel_types($cmodel_id){
   return array_merge(array($cmodel_id), islandora_cmodel_supertypes($cmodel_id));
 }
@@ -287,7 +195,7 @@ function islandora_cmodel_parent($cmodel_id) {
   $parents = array(); // This should be an array of length 1.
 
   if($cmodel){
-    $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
+    $cmodel->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
     $rels = $cmodel->relationships->get(ISLANDORA_MODEL_URI,  'hasParentModel');
 
     foreach($rels as $rel)

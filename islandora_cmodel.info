@@ -1,6 +1,7 @@
 name = "Islandora CModel"
 description = "A module which provides a number of functions for working with Islandora CModels, and implements CModel polymorphism."
 dependencies[] = islandora
+dependencies[] = islandora_solr_query_set
 package = Islandora
 version = 7.x-dev
 core = 7.x

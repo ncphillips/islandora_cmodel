@@ -1,81 +1,56 @@
 <?php
 /**
- * @file
+ * @file islandora_cmodel.module
  */
 
 error_reporting(E_ALL);
 ini_set('display_errors', TRUE);
 ini_set('display_startup_errors', TRUE);
 
-// RELS EXT URIs
+/**
+ * DEFINITION
+ * __ISLANDORA_MODEL_URI__: http://islandora.ca/ontology/model#
+ */
 define("ISLANDORA_MODEL_URI", 'http://islandora.ca/ontology/model#');
 
-// CModels Helper Functions
 module_load_include('inc', 'islandora_cmodel', 'includes/cmodel_helper_functions');
+module_load_include('inc', 'islandora_cmodel', 'includes/object_functions');
 module_load_include('inc', 'islandora_cmodel', 'includes/hook_ingest_steps');
 
-function islandora_cmodel_menu() {
-  $urls['islandora/model/%islandora_cmodel'] = array(
-    'title callback' => 'islandora_drupal_title',
-    'title arguments' => array(2),
-    'page callback' => 'islandora_view_object',
-    'page arguments' => array(2),
-    'type' => MENU_NORMAL_ITEM,
-    'access callback' => 'islandora_object_access_callback',
-    'access arguments' => array(ISLANDORA_VIEW_OBJECTS, 2),
-  );
-
-  $urls['islandora/model/%islandora_cmodel/content'] = array(
-    'title' => 'Content',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('islandora_related_objects_form', 2, 'islandora:specimen_cmodel', array('hasModel')),
-    'access callback' => true,
-    //    'access arguments' => array(array(ISLANDORA_VIEW_OBJECTS), 2),
-    'type' => MENU_LOCAL_TASK,
-  );
-
-  return $urls;
-}
-
 /**
- * islandora_cmodel_action_title
+ * # Implements hook_theme
+ * ## CModel theme
  *
- * @param $action
- * @param $cmodel
+ * A render array based theme that allows users to hook in and add or remove
+ * from the CModel page.
  *
- * @return string
+ * Information passed to the theme includes the CModel's _supertypes_, _subtypes_,
+ * and _relationships_.
  *
- * Generates a page title given an 'action' and a 'cmodel'.
- *
- * For example:
- *
- *    Add Specimen
- *    Ingest Project
- */
-function islandora_cmodel_action_title($action, $cmodel){
-  return "{$action} {$cmodel->label}";
-}
-
-/**
- * Implements hook_theme
+ * @see islandora_cmodel_page()
+ * @see islandora_cmodel_preprocess_cmodel()
+ * @see hook_theme()
  */
 function islandora_cmodel_theme($existing, $type, $theme, $path) {
+  module_load_include('inc', 'islandora_cmodel', 'theme/cmodel.page');
   $themes['cmodel'] = array(
     'file' => 'theme/theme.inc',
-    'template' => 'theme/cmodel',
+    'function' => 'islandora_cmodel_page',
     'variables' => array(
       'object' => NULL,
     ),
   );
-
   return $themes;
 }
+
 
 /**
  * Implements hook_islandora_object_alter
  *
  * This function creates a fedora:hasModel relationship between the $object
- * and all of it's CModel's supertypes. Should not be run for CModels.
+ * and all of it's CModel's supertypes. It is not run for CModels.
+ *
+ * @see hook_islandora_object_alter()
  */
 function islandora_cmodel_islandora_object_alter($object, array &$context) {
   $models = $object->models;
@@ -98,11 +73,16 @@ function islandora_cmodel_islandora_object_alter($object, array &$context) {
 }
 
 /**
+ * Implements hook_CMODEL_PID_islandora_object_alter
  *
+ * where CMODEL = fedora-system:ContentMdoel-3.0
+ *
+ * @see hook_cmodel_pid_islandora_object_alter()
  */
 function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_object_alter($object, &$context){
+  /** This function modifies Content Models on ingest. */
   if($context['action'] == 'ingest'){
-    $models = $object->models;
+    /** If an islandora-model:hasParentModel relationship is defined for this CModel, */
     $parent_id = $object->relationships->get(ISLANDORA_MODEL_URI, 'hasParentModel')[0]['object']['value'];
 
     $supertypes = islandora_cmodel_supertypes($parent_id);
@@ -110,6 +90,10 @@ function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_object_alter(
       $supertypes[] = $parent_id;
     }
 
+    /**
+     * then an islandora-model:isSubtypeOf relationship is made between it, and all of its
+     * parent's supertypes.
+     */
     foreach($supertypes as $supertype){
       if(empty($object->relationships->get(ISLANDORA_RELS_EXT_URI, 'isSubtypeOf', $supertype))){
         $object->relationships->add(ISLANDORA_MODEL_URI, 'isSubtypeOf', $supertype);
@@ -122,6 +106,9 @@ function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_object_alter(
  * Implements hook_CMODEL_PID_islandora_view_object()
  *
  * Where CMODEL_PID = fedora-system:ContentModel-3.0
+ *
+ * @see islandora_cmodel_theme()
+ * @see hook_CMODEL_PID_islandora_view_object()
  */
 function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_view_object($object){
   $output = theme('cmodel', array('islandora_object' => $object));
@@ -131,6 +118,17 @@ function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_view_object($
 
 /**
  * select_cmodel_form
+ *
+ * @param $form
+ * @param $form_state
+ * @return mixed
+ *
+ * This form is called before the ingestion process for an Islandora Object
+ * begins. This form displays a list of CModels the User is able to choose from.
+ *
+ * The select_cmodel_form is not displayed if there is only one option.
+ *
+ * @see islandora_cmodel_islandora_ingest_steps_alter()
  */
 function select_cmodel_form($form, &$form_state) {
   $models = array();
@@ -151,8 +149,14 @@ function select_cmodel_form($form, &$form_state) {
   return $form;
 }
 
-
-
+/**
+ * select_cmodel_form_submit
+ *
+ * @param $form
+ * @param $form_state
+ *
+ * @see select_cmodel_form()
+ */
 function select_cmodel_form_submit($form, &$form_state){
   $model = $form_state['values']['select'];
   $form_state['islandora']['shared_storage']['models'] = array($model);

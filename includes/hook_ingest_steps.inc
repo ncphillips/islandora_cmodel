@@ -8,11 +8,15 @@
 
 /**
  * Implements hook_islandora_ingest_steps()
- * @return array
+ * @see hook_islandora_ingest_steps()
  */
 function islandora_cmodel_islandora_ingest_steps(){
   $ingest_steps = array();
 
+  /**
+   * @see set_parent_relationships()
+   * @see unset_parent_relationships()
+   */
   $ingest_steps['islandora_cmodel_set_parent_relationship'] = array(
     'type' => 'callback',
     'weight' => 2,
@@ -26,6 +30,10 @@ function islandora_cmodel_islandora_ingest_steps(){
     ),
   );
 
+  /**
+   * @see select_cmodel_form()
+   * @see islandora_cmodel_islandora_ingest_steps_alter()
+   */
   $ingest_steps['islandora_cmodel_select_cmodel'] = array(
     'type' => 'form',
     'weight' => 1,
@@ -41,6 +49,8 @@ function islandora_cmodel_islandora_ingest_steps(){
  * set_parent_relationships
  *
  * @param $args
+ *
+ * @see unset_parent_relationships()
  */
 function set_parent_relationships($args){
   $object = $args['islandora']['objects'][0];
@@ -70,6 +80,8 @@ function set_parent_relationships($args){
 /**
  * unset_parent_relationships
  * @param $args
+ *
+ * @see set_parent_relationships()
  */
 function unset_parent_relationships($args){
   /** @todo */
@@ -81,8 +93,11 @@ function unset_parent_relationships($args){
  *
  * This implementation does two things.
  *
- * 1. Adds all the subtypes of each model listed.
+ * 1. islandora_cmodel_islandora_ingest_steps_alter
  * 2. If there is NOT more than one model the Select CModel step is removed.
+ *
+ * @see select_cmodel_form()
+ * @see hook_islandora_ingest_steps_alter()
  */
 function islandora_cmodel_islandora_ingest_steps_alter(array &$steps, array &$form_state) {
   if($form_state['islandora']['step_id'] != 'islandora_cmodel_select_cmodel'){
