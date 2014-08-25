@@ -108,31 +108,54 @@ function islandora_cmodel_relationships($cmodel_id){
   $cmodel_ids = islandora_cmodel_types($cmodel_id);
 
   // Construct the CModel tripples
-  $cm_query_array = array();
+  $cm_query_array_towards = array();
+  $cm_query_array_away= array();
   foreach($cmodel_ids as $id){
-    $cm_query_array[] = '{' . "?subject ?relationship <info:fedora/$id>" . '}';
+    $cm_query_array_towards[] = '{' . "?subject ?relationship <info:fedora/$id>" . '}';
+    $cm_query_array_away[] = '?subject=<info:fedora/' . $id  .'>';
+//    $cm_query_array_away[] = '{' . "<info:fedora/$id> ?relationship ?object" . '}';
   }
-  $cm_query = implode(' UNION ', $cm_query_array);
+  $cm_query_towards = implode(' UNION ', $cm_query_array_towards);
+  $cm_query_away = implode(' || ', $cm_query_array_away);
 
   // Construct Query
   $query = "
-    PREFIX fedora-model: <info:fedora/fedora-system:def/model#>
-    SELECT *
-    FROM <#ri>
-    WHERE
-    {
-      {?subject fedora-model:hasModel <info:fedora/fedora-system:ContentModel-3.0>}
-      {
-        $cm_query
-      }
-      {?subject ?relationship ?object}
-      FILTER(!REGEX(STR(?relationship), 'Subtype'))
-      FILTER(!REGEX(STR(?relationship), 'Model'))
-    }";
+PREFIX fedora-model: <info:fedora/fedora-system:def/model#>
+SELECT *
+FROM <#ri>
+WHERE
+{
+  {?subject fedora-model:hasModel <info:fedora/fedora-system:ContentModel-3.0>}
+  {
+    $cm_query_towards
+  }
+  {?subject ?relationship ?object}
+  FILTER(!REGEX(STR(?relationship), 'Subtype'))
+  FILTER(!REGEX(STR(?relationship), 'Model'))
+}";
 
-  // Connect to Tuque and perform the query.
   $tuque = new IslandoraTuque();
   $query_results= $tuque->repository->ri->sparqlQuery($query);
+
+$query = "
+PREFIX fedora-model: <info:fedora/fedora-system:def/model#>
+SELECT *
+FROM <#ri>
+WHERE
+{
+  {?object fedora-model:hasModel <info:fedora/fedora-system:ContentModel-3.0>}
+  {?subject fedora-model:hasModel <info:fedora/fedora-system:ContentModel-3.0>}
+  {
+    ?subject ?relationship ?object
+  }
+  FILTER($cm_query_away)
+  FILTER(!REGEX(STR(?relationship), 'Subtype'))
+  FILTER(!REGEX(STR(?relationship), 'Model'))
+}";
+
+  $query_results = array_merge($query_results, $tuque->repository->ri->sparqlQuery($query));
+
+  // Connect to Tuque and perform the query.
 
   // Regex Patterns
   $predicate_value_pattern  = '/^.*#(.*)$/';
@@ -165,7 +188,6 @@ function islandora_cmodel_relationships($cmodel_id){
   return $results;
 }
 
-function islandora_cmodel_supertypes(){}
 // Polymorphism
 /**
  * islandora_cmodel_parent
@@ -212,6 +234,11 @@ function islandora_cmodel_types($cmodel_id){
   return $supertypes;
 }
 
+function islandora_cmodel_supertypes($cmodel_id){
+  $parent = islandora_cmodel_parent($cmodel_id);
+  return islandora_cmodel_types($parent);
+}
+
 /**
  * islandora_cmodel_subtypes
  *
@@ -231,7 +258,12 @@ function islandora_cmodel_subtypes($cmodel_id){
       ),
     );
 
-    $subtypes = $iqs->objects;
+    $subs = $iqs->objects;
+
+    $subtypes = array();
+    foreach($subs as $s){
+      $subtypes[] = (string)$s;
+    }
 
     return $subtypes;
   }
