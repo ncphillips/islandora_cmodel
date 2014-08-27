@@ -36,7 +36,7 @@ function islandora_cmodel_islandora_ingest_steps(){
    */
   $ingest_steps['islandora_cmodel_select_cmodel'] = array(
     'type' => 'form',
-    'weight' => 1,
+    'weight' => -49,
     'form_id' => 'select_cmodel_form',
   );
 

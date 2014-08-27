@@ -56,19 +56,18 @@ function islandora_cmodel_islandora_object_alter($object, array &$context) {
   $models = $object->models;
   $cm = in_array('fedora-system:ContentModel-3.0', $models);
   if($context['action'] == 'ingest' and !$cm){
-    // Parent CModel
-    // Don't use the islandora_object_parent_model function. It only works for
-    // objects that have been fully ingested.
     $models = $object->models;
-    $cmodel_id = $models[0];
-
-    // Merges the object's models with
-    $models = array_merge($object->models, islandora_cmodel_types($cmodel_id));
-    $object->models = $models;
-
-    // Creates a hasParentModel relationship towards the CModel initially chosen.
     $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
-    $object->relationships->add(ISLANDORA_MODEL_URI, 'hasParentModel', $cmodel_id);
+    if ($parent_get = $object->relationships->get(ISLANDORA_MODEL_URI, 'hasParentModel')){
+      $parent = $parent_get[0]['object']['value'];
+    }
+    else{
+      $parent = $models[0];
+      $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
+      $object->relationships->add(ISLANDORA_MODEL_URI, 'hasParentModel', $parent);
+    }
+    $models = array_merge($object->models, islandora_cmodel_types($parent));
+    $object->models = $models;
   }
 }
 
@@ -157,4 +156,16 @@ function select_cmodel_form($form, &$form_state) {
 function select_cmodel_form_submit($form, &$form_state){
   $model = $form_state['values']['select'];
   $form_state['islandora']['shared_storage']['models'] = array($model);
+  $objects = $form_state['islandora']['objects'];
+  foreach($objects as $object){
+    $object->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
+    if ($parent_get = $object->relationships->get(ISLANDORA_MODEL_URI, 'hasParentModel')){
+      $parent = $parent_get['object']['value'];
+      if ($parent != $model){
+        $object->relationships->remove(ISLANDORA_MODEL_URI, 'hasParentModel', $parent);
+      }
+    }
+    $object->relationships->add(ISLANDORA_MODEL_URI, 'hasParentModel', $model);
+  }
+  $a = 0;
 }
