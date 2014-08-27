@@ -95,7 +95,7 @@ function islandora_cmodel_remove_relationship($sub, $pred_uri, $pred, $object, $
  *    'predicate' => array(
  *      'value' => 'isPartOf',
  *      'alias' => 'fedora',
- *      'namespace' => 'info:fedora/fedora-system:def/model#'
+ *      'namespace' => 'info:fedora/fedora-system:def/relations-external#'
  *    ),
  *    'object' => array(
  *      'literal' => false,
