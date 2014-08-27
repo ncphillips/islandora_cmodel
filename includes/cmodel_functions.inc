@@ -205,10 +205,16 @@ function islandora_cmodel_parent($cmodel_id) {
     $cmodel->relationships->registerNamespace('islandora-model', ISLANDORA_MODEL_URI);
     $rels = $cmodel->relationships->get(ISLANDORA_MODEL_URI,  'hasParentModel');
 
-    if(sizeof($rels) >= 1)
+    if(sizeof($rels) >= 1){
       return $rels[0]['object']['value'];
+    }
+    else{
+      return '';
+    }
   }
-  return null;
+  else{
+    return null;
+  }
 }
 
 /**
