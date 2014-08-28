@@ -34,10 +34,10 @@ function islandora_cmodel_islandora_ingest_steps(){
    * @see select_cmodel_form()
    * @see islandora_cmodel_islandora_ingest_steps_alter()
    */
-  $ingest_steps['islandora_cmodel_select_cmodel'] = array(
+  $ingest_steps['islandora_cmodel_select_cmodel_subtype'] = array(
     'type' => 'form',
     'weight' => -49,
-    'form_id' => 'select_cmodel_form',
+    'form_id' => 'select_cmodel_subtype_form',
   );
 
   return $ingest_steps;
@@ -100,7 +100,7 @@ function unset_parent_relationships($args){
  * @see hook_islandora_ingest_steps_alter()
  */
 function islandora_cmodel_islandora_ingest_steps_alter(array &$steps, array &$form_state) {
-  if($form_state['islandora']['step_id'] != 'islandora_cmodel_select_cmodel'){
+  if($form_state['islandora']['step_id'] != 'islandora_cmodel_select_cmodel_subtype'){
     $models = $form_state['islandora']['shared_storage']['models'];
 
     foreach($models as $model){
@@ -108,7 +108,7 @@ function islandora_cmodel_islandora_ingest_steps_alter(array &$steps, array &$fo
     }
 
     if (sizeof($models) < 2){
-      unset($steps['islandora_cmodel_select_cmodel']);
+      unset($steps['islandora_cmodel_select_cmodel_subtype']);
     }
 
     $form_state['islandora']['shared_storage']['models'] = $models;

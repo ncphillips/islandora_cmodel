@@ -1,7 +1,7 @@
 # Islandora CModel
 
 Islandora CModel is a project which extends the concept of Fedora Content Models
-in the context of an Islandora site, without the addition of new Datastreams.
+in the context of an Islandora site.
 
 The two core concepts that have been added, are that of Relationships, and Subtyping.
 

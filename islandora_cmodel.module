@@ -126,7 +126,7 @@ function islandora_cmodel_fedora_system_ContentModel_3_0_islandora_view_object($
  *
  * @see islandora_cmodel_islandora_ingest_steps_alter()
  */
-function select_cmodel_form($form, &$form_state) {
+function select_cmodel_subtype_form($form, &$form_state) {
   $models = array();
 
   $stored_models = $form_state['islandora']['shared_storage']['models'];
@@ -138,7 +138,7 @@ function select_cmodel_form($form, &$form_state) {
 
   $form['select'] = array(
     '#type' => 'select',
-    '#title' => t('Content Model'),
+    '#title' => t('Select a Subtype'),
     '#options' => $models,
   );
 
@@ -153,7 +153,7 @@ function select_cmodel_form($form, &$form_state) {
  *
  * @see select_cmodel_form()
  */
-function select_cmodel_form_submit($form, &$form_state){
+function select_cmodel_subtype_form_submit($form, &$form_state){
   $model = $form_state['values']['select'];
   $form_state['islandora']['shared_storage']['models'] = array($model);
   $objects = $form_state['islandora']['objects'];
